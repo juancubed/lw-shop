@@ -31,5 +31,7 @@ export const fetchProductDetail = (productId: number) => {
 
 // swr API Hooks
 export const useProductList = (offset: number, limit: number) => {
-  return useSWR<IProduct[]>(`/products/?offset=${offset}&limit=${limit}`);
+  return useSWR<IProduct[]>(`/products/?offset=${offset}&limit=${limit}`, {
+    revalidateOnFocus: false,
+  });
 };

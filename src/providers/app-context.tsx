@@ -39,7 +39,7 @@ const MainProvider = ({ children }: any) => {
     data: products,
     mutate: revalidateList,
     isLoading: loadingProducts,
-  } = useProductList(0, 10);
+  } = useProductList(0, 25);
 
   const productsEnhanced = products?.map((p) => {
     let variations = generateVariations(p, p.images.length);
@@ -51,7 +51,7 @@ const MainProvider = ({ children }: any) => {
               id: `p_${p.id}_v_${index + 1}`,
               variantId: `Variant ${index + 1}`,
               image: image,
-              price: p.price + index * 0.1,
+              price: p.price + 5 * index,
               group: variation.group,
               value: variation.value,
               variation: variation.subGroup ?? [],

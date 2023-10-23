@@ -28,6 +28,7 @@ import { useAppContext } from "../providers/app-context";
 import { Alert, View } from "react-native";
 import { SkeletonProductDetail } from "../components/SkeletonProductDetail";
 import { VariationsList } from "../components/VariantionsList";
+import { getPriceFromVariations } from "../utils/utils";
 
 export const ProductDetailScreen: React.FC = ({ navigation, ...rest }: any) => {
   const route = useRoute<any>();
@@ -37,6 +38,7 @@ export const ProductDetailScreen: React.FC = ({ navigation, ...rest }: any) => {
   const [chosenVariant, setChosenVariant] = useState<IVariation>();
   const [chosenVariationObject, setChosenVariationObject] =
     useState<IChosenVariationObj>();
+  const [price, setPrice] = useState<number>(product?.price ?? 0);
   const [variationTypes, setVariationTypes] = useState<{
     [key: string]: IVariation[];
   }>();
@@ -84,15 +86,18 @@ export const ProductDetailScreen: React.FC = ({ navigation, ...rest }: any) => {
           [key: string]: IVariation[];
         } = {};
 
-        if (prod?.variants && prod.variants.length > 0) {
-          // setChosenVariant(prod.variants[0]);
-          prod.variants.forEach((v) => {
-            if (v.group in variationGroups === false) {
-              variationGroups[v.group] = [];
-            }
-            variationGroups[v.group].push(v);
-          });
-          setVariationTypes(variationGroups);
+        if (prod) {
+          if (prod.variants && prod.variants.length > 0) {
+            // setChosenVariant(prod.variants[0]);
+            prod.variants.forEach((v) => {
+              if (v.group in variationGroups === false) {
+                variationGroups[v.group] = [];
+              }
+              variationGroups[v.group].push(v);
+            });
+            setVariationTypes(variationGroups);
+          }
+          setPrice(prod.price);
         }
         setIsLoaded(true);
       }, 400);
@@ -183,12 +188,18 @@ export const ProductDetailScreen: React.FC = ({ navigation, ...rest }: any) => {
                       if (v) {
                         c[v.group] = v.value;
                         setChosenVariationObject(c);
+                        let p = getPriceFromVariations(product, c);
+                        if (p >= 0) setPrice(p);
                       }
                     }}
                   >
                     {variationTypes[k].map((v, i) => {
                       return (
-                        <Select.Item label={v.value} value={v.id} key={i} />
+                        <Select.Item
+                          label={`${v.value} - ${v.price ?? price}`}
+                          value={v.id}
+                          key={i}
+                        />
                       );
                     })}
                   </Select>
@@ -200,6 +211,8 @@ export const ProductDetailScreen: React.FC = ({ navigation, ...rest }: any) => {
                           let c = chosenVariationObject;
                           c[chosenObj.group] = chosenObj.value;
                           setChosenVariationObject(c);
+                          let p = getPriceFromVariations(product, c);
+                          if (p >= 0) setPrice(p);
                         }
                       }}
                       variant={chosenVariant}
@@ -211,9 +224,10 @@ export const ProductDetailScreen: React.FC = ({ navigation, ...rest }: any) => {
           </Flex>
         )}
       </Box>
-      {/* <Text>{JSON.stringify(product)}</Text> */}
-      {/* <Text>{JSON.stringify(chosenVariant)}</Text> */}
-      <Text>{JSON.stringify(chosenVariationObject)}</Text>
+
+      <Flex flexDir={"row-reverse"}>
+        <Text>{price.toString()}</Text>
+      </Flex>
       <Button
         colorScheme={"lightBlue"}
         _text={{ fontSize: "lg" }}

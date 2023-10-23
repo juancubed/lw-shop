@@ -74,7 +74,7 @@ export const ProductListItem: React.FC<ProductListItemProps> = (props) => {
           {product.variants.map((variant, i) => {
             return (
               <Badge key={i} colorScheme="coolGray" fontSize={"xs"}>
-                {variant.variation.size || variant.variation.color}
+                {variant.value}
               </Badge>
             );
           })}
