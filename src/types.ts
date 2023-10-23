@@ -7,14 +7,28 @@ export interface IProduct {
   images: string[];
   creationAt: Date;
   updatedAt: Date;
-  variants?: IVariant[];
+  variants?: IVariation[];
 }
 
-export interface IVariant {
+export interface IChosenVariationObj {
+  [key: string]: string;
+}
+
+export interface IVariationObj {
+  group: string;
+  value: string;
+  price?: number;
+  subGroup?: IVariationObj[];
+}
+
+export interface IVariation {
   id: string;
-  title: string;
-  price: number;
+  variantId: string;
   image: string;
+  price?: number;
+  group: string;
+  value: string;
+  variation: IVariationObj[];
 }
 export interface ICategory {
   id: number;
@@ -27,7 +41,7 @@ export interface ICategory {
 export interface IProductPurchase {
   product: IProduct;
   quantity: number;
-  variant?: IVariant;
+  variant?: IVariationObj;
 }
 
 export interface ICart {
@@ -35,3 +49,5 @@ export interface ICart {
   updated: Date;
   products: IProductPurchase[];
 }
+
+export type TCartOperation = { success: boolean; message: string };

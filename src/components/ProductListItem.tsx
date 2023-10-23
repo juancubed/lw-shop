@@ -1,8 +1,6 @@
 import {
   AspectRatio,
   Badge,
-  Box,
-  Button,
   Flex,
   HStack,
   Heading,
@@ -75,8 +73,8 @@ export const ProductListItem: React.FC<ProductListItemProps> = (props) => {
         <Flex flexDir={"row"} justifyContent={"flex-end"}>
           {product.variants.map((variant, i) => {
             return (
-              <Badge colorScheme="coolGray" fontSize={"xs"}>
-                {variant.title}
+              <Badge key={i} colorScheme="coolGray" fontSize={"xs"}>
+                {variant.variation.size || variant.variation.color}
               </Badge>
             );
           })}
