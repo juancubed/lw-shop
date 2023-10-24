@@ -13,11 +13,13 @@ type VariantListItemProps = {
 interface Props {
   variation: IVariationObj;
   onSelect: (chosenObj: IVariationObj | undefined) => void;
+  chosenVariationObject?: IVariationObj;
 }
 
 const VariationGroupElement: React.FC<Props> = (props) => {
-  const { variation, onSelect } = props;
+  const { variation, chosenVariationObject, onSelect } = props;
   if (variation.subGroup === undefined) return undefined;
+  useEffect(() => {}, [chosenVariationObject]);
   return (
     <Box>
       <Text style={{ textTransform: "capitalize" }}>
@@ -47,9 +49,7 @@ const VariationGroupElement: React.FC<Props> = (props) => {
 export const VariationsList: React.FC<VariantListItemProps> = (props) => {
   const { variant, chosenVariationObject, onSelect } = props;
   const [subGroup, setSubGroup] = useState<IVariationObj>();
-  // useEffect(()=> {
 
-  // }, [chosenVariationObject])
   return (
     <Flex>
       {variant.variation.length > 0 && (

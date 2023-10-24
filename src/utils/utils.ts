@@ -23,7 +23,6 @@ export const VARIATION_GROUPS: variationGroups = {
   laptops: { processor: VARIATION_PROCESSOR, darkColor: VARIATION_DARK_COLORS },
   Electronics: {
     capacity: VARIATION_CAPACITY,
-    color: VARIATION_COLORS,
     processor: VARIATION_PROCESSOR,
   },
   Clothes: { color: VARIATION_COLORS, size: VARIATION_SIZES },
@@ -117,4 +116,77 @@ export const getPriceFromVariations = (
     }
   });
   return price;
+};
+export const isValidChosenVariant = (
+  product: IProduct,
+  chosenVariations?: IChosenVariationObj
+) => {
+  const { variants } = product;
+  if (!variants) return true;
+  if (variants && !chosenVariations) return false;
+
+  const recursivePriceLookup = (
+    variant: IVariationObj | undefined,
+    variationsLeft: IChosenVariationObj
+  ): boolean => {
+    if (Object.keys(variationsLeft).length === 0 || variant === undefined) {
+      return true;
+    }
+    if (
+      Object.keys(variationsLeft).indexOf(variant.group) >= 0 &&
+      variant.value === variationsLeft[variant.group]
+    ) {
+      delete variationsLeft[variant.group];
+      if (Object.keys(variationsLeft).length === 0) {
+        if (variant.subGroup == undefined || variant.subGroup.length === 0) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+      if (variant.subGroup) {
+        // variant.subGroup.forEach((v) => {
+        //   return recursivePriceLookup(v, { ...variationsLeft });
+        // });
+        let _sbVariant = variant.subGroup.find((sb) => {
+          return recursivePriceLookup(sb, { ...chosenVariations }) === true;
+        });
+        return _sbVariant != undefined;
+      }
+    }
+    return false;
+  };
+
+  let variant = variants.find((v) => {
+    return (
+      recursivePriceLookup(
+        { value: v.value, group: v.group, subGroup: v.variation },
+        { ...chosenVariations }
+      ) === true
+    );
+  });
+  return variant != undefined;
+};
+
+export const isVariationIncluded = (
+  object1: IChosenVariationObj | undefined,
+  object2: IChosenVariationObj | undefined
+) => {
+  if (object1 == undefined && object1 == object2) return true;
+  if (object1 != undefined && object2 != undefined) {
+    const keys1 = Object.keys(object1);
+    const keys2 = Object.keys(object2);
+
+    if (keys1.length !== keys2.length) {
+      return false;
+    }
+
+    for (let key of keys1) {
+      if (object1[key] !== object2[key]) {
+        return false;
+      }
+    }
+  }
+
+  return true;
 };

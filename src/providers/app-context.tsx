@@ -1,9 +1,19 @@
 import React, { createContext, useEffect, useState } from "react";
-import { ICart, IProduct, IVariation, TCartOperation } from "../types";
+import {
+  ICart,
+  IChosenVariationObj,
+  IProduct,
+  IVariation,
+  TCartOperation,
+} from "../types";
 
 import AsyncStorageLib from "@react-native-async-storage/async-storage";
 import { useProductList } from "../api";
-import { generateVariations } from "../utils/utils";
+import {
+  generateVariations,
+  getPriceFromVariations,
+  isVariationIncluded,
+} from "../utils/utils";
 
 interface AppContextProps {
   loading: boolean;
@@ -11,10 +21,10 @@ interface AppContextProps {
   revalidateList: () => void;
   cart: ICart;
   setLoading: (value: boolean) => void;
-  addToCart: (id: number, quantity: number, variant?: string) => void;
+  removeFromCart: (index: number) => void;
   updateCart: (
     product: IProduct,
-    variant: IVariation,
+    variant: IChosenVariationObj | undefined,
     quantity: number
   ) => Promise<TCartOperation>;
   clearCart: () => void;
@@ -64,10 +74,12 @@ const MainProvider = ({ children }: any) => {
 
   useEffect(() => {
     setLoading(true);
-    AsyncStorageLib.getItem("Cart").then((value) => {
+    AsyncStorageLib.getItem("cart").then((value) => {
       if (value) {
+        let _cart = JSON.parse(value);
+        setCart(_cart);
         // // console.log({ value });
-        // resolve();
+        setLoading(true);
       } else {
         // reject("Library pictures");
         setLoading(false);
@@ -76,13 +88,50 @@ const MainProvider = ({ children }: any) => {
   }, []);
 
   const addToCart = (id: number, quantity: number, variant?: string) => {};
+  const removeFromCart = (index: number) => {
+    let _products = JSON.parse(JSON.stringify(cart.products));
+    _products.splice(index, 1);
+    setCart((prevState) => ({
+      ...prevState,
+      products: _products,
+      updated: new Date(),
+    }));
+  };
   const updateCart = (
     product: IProduct,
-    variant: IVariation,
+    variant: IChosenVariationObj | undefined,
     quantity: number
   ) => {
     return new Promise<TCartOperation>((resolve, reject) => {
-      resolve({ message: "OK", success: false });
+      const existingElement = cart.products.find((p) => {
+        p.product.id === product.id && isVariationIncluded(p.variant, variant);
+      });
+      if (existingElement) {
+        resolve({
+          message: "The product has already been added",
+          success: false,
+        });
+      }
+      let _products = JSON.parse(JSON.stringify(cart.products));
+      _products.push({
+        product,
+        variant,
+        price: variant
+          ? getPriceFromVariations(product, variant)
+          : product.price,
+        quantity,
+      });
+      setCart((prevState) => ({
+        ...prevState,
+        products: _products,
+        updated: new Date(),
+      }));
+      let _cart = JSON.stringify(cart);
+      AsyncStorageLib.setItem("cart", _cart);
+      resolve({
+        message: "The product has been added successfully",
+        success: true,
+      });
     });
   };
   const clearCart = () => {};
@@ -95,7 +144,7 @@ const MainProvider = ({ children }: any) => {
         loading,
         setLoading,
         revalidateList,
-        addToCart,
+        removeFromCart,
         updateCart,
         clearCart,
       }}

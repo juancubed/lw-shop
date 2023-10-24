@@ -73,7 +73,7 @@ export const ProductListItem: React.FC<ProductListItemProps> = (props) => {
         <Flex flexDir={"row"} justifyContent={"flex-end"}>
           {product.variants.map((variant, i) => {
             return (
-              <Badge key={i} colorScheme="coolGray" fontSize={"xs"}>
+              <Badge key={i} colorScheme="emerald" fontSize={"xs"} ml={1}>
                 {variant.value}
               </Badge>
             );

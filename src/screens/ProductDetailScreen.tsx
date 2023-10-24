@@ -28,11 +28,11 @@ import { useAppContext } from "../providers/app-context";
 import { Alert, View } from "react-native";
 import { SkeletonProductDetail } from "../components/SkeletonProductDetail";
 import { VariationsList } from "../components/VariantionsList";
-import { getPriceFromVariations } from "../utils/utils";
+import { getPriceFromVariations, isValidChosenVariant } from "../utils/utils";
 
 export const ProductDetailScreen: React.FC = ({ navigation, ...rest }: any) => {
   const route = useRoute<any>();
-  const { addToCart, clearCart, updateCart, cart, products } = useAppContext();
+  const { updateCart, products } = useAppContext();
   const { productId, variant } = route.params;
   const [product, setProduct] = useState<IProduct>();
   const [chosenVariant, setChosenVariant] = useState<IVariation>();
@@ -65,12 +65,20 @@ export const ProductDetailScreen: React.FC = ({ navigation, ...rest }: any) => {
     );
   const handleAddToCart = () => {
     if (!product || !chosenVariant || isSubmitting) return;
+    if (!isValidChosenVariant(product, chosenVariationObject)) {
+      Alert.alert(
+        "Incomplete information",
+        "Please fill all the required fields"
+      );
+      return;
+    }
     setIsSubmitting(true);
-
     setTimeout(() => {
-      updateCart(product, chosenVariant, 1).then((res) => {
+      updateCart(product, chosenVariationObject, 1).then((res) => {
         if (res.success) {
-          showAlert();
+          Alert.alert(res.message);
+        } else {
+          Alert.alert("Invalid", res.message);
         }
       });
       setIsSubmitting(false);
@@ -196,7 +204,7 @@ export const ProductDetailScreen: React.FC = ({ navigation, ...rest }: any) => {
                     {variationTypes[k].map((v, i) => {
                       return (
                         <Select.Item
-                          label={`${v.value} - ${v.price ?? price}`}
+                          label={`${v.value}`}
                           value={v.id}
                           key={i}
                         />
@@ -225,12 +233,18 @@ export const ProductDetailScreen: React.FC = ({ navigation, ...rest }: any) => {
         )}
       </Box>
 
-      <Flex flexDir={"row-reverse"}>
-        <Text>{price.toString()}</Text>
-      </Flex>
+      <HStack justifyContent={"flex-end"} my={2}>
+        <Text my={3}>Price: </Text>
+        <Text fontWeight={"bold"} fontSize={"3xl"}>
+          ${price.toString()}
+        </Text>
+      </HStack>
       <Button
         colorScheme={"lightBlue"}
         _text={{ fontSize: "lg" }}
+        isDisabled={!product || !chosenVariant || isSubmitting}
+        isLoading={isSubmitting}
+        isLoadingText="Adding to Cart"
         m="4"
         onPress={handleAddToCart}
       >

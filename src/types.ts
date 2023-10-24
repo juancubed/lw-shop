@@ -41,7 +41,8 @@ export interface ICategory {
 export interface IProductPurchase {
   product: IProduct;
   quantity: number;
-  variant?: IVariationObj;
+  variant?: IChosenVariationObj;
+  price: number;
 }
 
 export interface ICart {
