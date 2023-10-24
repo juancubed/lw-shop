@@ -1,29 +1,19 @@
 import React, { useEffect, useState } from "react";
 import {
   AspectRatio,
-  Badge,
   Box,
   Button,
-  Center,
   Divider,
   Flex,
   HStack,
   Heading,
   Image,
   ScrollView,
-  Select,
-  Skeleton,
-  Stack,
   Text,
 } from "native-base";
 import { useRoute } from "@react-navigation/native";
-import {
-  IChosenVariationObj,
-  IProduct,
-  IVariation,
-  IVariationObj,
-} from "../types";
-import { fetchProductDetail } from "../api";
+import { IChosenVariationObj, IProduct, IVariationObj } from "../types";
+
 import { useAppContext } from "../providers/app-context";
 import { Alert, View } from "react-native";
 import { SkeletonProductDetail } from "../components/SkeletonProductDetail";
@@ -61,10 +51,22 @@ export const ProductDetailScreen: React.FC = ({ navigation, ...rest }: any) => {
       return;
     }
     setIsSubmitting(true);
+    let quantity = 1;
     setTimeout(() => {
-      updateCart(product, chosenVariationObject, 1).then((res) => {
+      updateCart(product, chosenVariationObject, quantity).then((res) => {
         if (res.success) {
-          Alert.alert(res.message);
+          Alert.alert("Product Added to Cart", `${quantity} ${product.title}`, [
+            { text: "Close", onPress: () => {} },
+            {
+              text: "Go to Checkout",
+              onPress: () => navigation.navigate("Checkout"),
+            },
+            {
+              text: "View Shopping Cart",
+              onPress: () => navigation.navigate("Main", { screen: "Cart" }),
+              style: "cancel",
+            },
+          ]);
         } else {
           Alert.alert("Invalid", res.message);
         }
@@ -94,7 +96,7 @@ export const ProductDetailScreen: React.FC = ({ navigation, ...rest }: any) => {
   return (
     <ScrollView
       style={[
-        { flex: 1, paddingHorizontal: 10 },
+        { flex: 1, paddingHorizontal: 10, paddingTop: 10 },
         { flexDirection: "column", backgroundColor: "white" },
       ]}
     >
@@ -169,7 +171,6 @@ export const ProductDetailScreen: React.FC = ({ navigation, ...rest }: any) => {
                     setChosenVariationObject(c);
                     let p = getPriceFromVariations(product, c);
                     if (p >= 0) setPrice(p);
-                    // alert(isValidChosenVariant(product, chosenVariationObject));
                   }
                 }}
                 chosenVariationObject={chosenVariationObject}

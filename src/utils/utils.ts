@@ -140,7 +140,11 @@ export const isValidChosenVariant = (
 ) => {
   const { variants } = product;
   if (!variants) return true;
-  if (variants && !chosenVariations) return false;
+  if (
+    variants &&
+    (!chosenVariations || Object.keys(chosenVariations).length == 0)
+  )
+    return false;
 
   const recursiveValidation = (
     variant: IVariationObj | undefined,

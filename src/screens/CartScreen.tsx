@@ -16,15 +16,14 @@ import { useAppContext } from "../providers/app-context";
 import { CartProductListItem } from "../components/CartProductListItem";
 import { IProductPurchase } from "../types";
 import { isVariationIncluded } from "../utils/utils";
-import { BasicCard } from "../components/BasicCard";
-
-interface Props {
-  // productId: Number
-}
 
 export const CartScreen: React.FC = ({ navigation, ...rest }: any) => {
-  const { cart, clearCart, removeFromCart } = useAppContext();
+  const { cart, removeFromCart } = useAppContext();
   const { products } = cart;
+
+  const handleStartCheckout = () => {
+    navigation.navigate("Checkout");
+  };
 
   const handleRemoveFromCart = (product: IProductPurchase) => {
     let index = cart.products.findIndex((p) => {
@@ -42,11 +41,11 @@ export const CartScreen: React.FC = ({ navigation, ...rest }: any) => {
       style={{
         flex: 1,
         padding: 4,
+        backgroundColor: "white",
       }}
     >
-      <Heading p="4" pb="3" size="lg">
-        Shopping Cart
-      </Heading>
+      <Heading m={6}>Shopping Cart</Heading>
+      <Divider />
       {products && products.length > 0 && (
         <FlatList
           data={products}
@@ -60,6 +59,7 @@ export const CartScreen: React.FC = ({ navigation, ...rest }: any) => {
             return (
               <CartProductListItem
                 key={index}
+                isCheckout={false}
                 product={item}
                 handleRemoveFromCart={handleRemoveFromCart}
               />
@@ -70,14 +70,18 @@ export const CartScreen: React.FC = ({ navigation, ...rest }: any) => {
         />
       )}
       {(!products || products.length === 0) && (
-        <Center>
+        <Center flex={1}>
           <Heading color={"gray.400"}>The Cart is Empty</Heading>
         </Center>
       )}
 
       {products.length > 0 && (
         <Box p={2} pt={4} borderRadius="md" background={"white"} shadow={"2"}>
-          <Button colorScheme={"lightBlue"} _text={{ fontSize: "lg" }}>
+          <Button
+            colorScheme={"lightBlue"}
+            _text={{ fontSize: "lg" }}
+            onPress={handleStartCheckout}
+          >
             Proceed to Checkout
           </Button>
           <Divider />

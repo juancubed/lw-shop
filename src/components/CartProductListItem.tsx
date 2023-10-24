@@ -16,12 +16,13 @@ import React from "react";
 import { BasicCard } from "./BasicCard";
 
 type ProductListItemProps = {
+  isCheckout: boolean;
   product: IProductPurchase;
   handleRemoveFromCart: (product: IProductPurchase) => void;
 };
 
 export const CartProductListItem: React.FC<ProductListItemProps> = (props) => {
-  const { product, handleRemoveFromCart } = props;
+  const { product, isCheckout, handleRemoveFromCart } = props;
 
   const handleRemove = () => {
     handleRemoveFromCart(product);
@@ -52,11 +53,13 @@ export const CartProductListItem: React.FC<ProductListItemProps> = (props) => {
           </Stack>
         </Stack>
         <Flex>
-          <IconButton
-            size={"sm"}
-            onPress={handleRemove}
-            icon={<CloseIcon />}
-          ></IconButton>
+          {!isCheckout && (
+            <IconButton
+              size={"sm"}
+              onPress={handleRemove}
+              icon={<CloseIcon />}
+            ></IconButton>
+          )}
           <Flex flexDir={"row"} mt={2}>
             <Text fontWeight={"medium"} fontSize={"sm"}>
               ${product.price.toString()}

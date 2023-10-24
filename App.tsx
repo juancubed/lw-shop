@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, View } from "react-native";
+import { LogBox, StyleSheet, View } from "react-native";
 import { AppProviders } from "./src/navigation/AppProviders";
 import {
   BottomTabNavigationProp,
@@ -14,7 +14,10 @@ import {
 import { ProductDetailScreen } from "./src/screens/ProductDetailScreen";
 import { Text } from "native-base";
 import type { CompositeNavigationProp } from "@react-navigation/native";
+import { CheckoutScreen } from "./src/screens/checkout/CheckoutScreen";
+import { PurchaseConfirmationScreen } from "./src/screens/checkout/PurchaseConfirmationScreen";
 
+LogBox.ignoreAllLogs();
 const AppTabNavigator: React.FC = ({ navigation }: any) => {
   const Tab = createBottomTabNavigator();
 
@@ -32,8 +35,25 @@ export default function App() {
   return (
     <AppProviders>
       <StackNavigator.Navigator>
-        <StackNavigator.Screen name="Main" component={AppTabNavigator} />
-        <StackNavigator.Screen name="Product" component={ProductDetailScreen} />
+        <StackNavigator.Screen
+          options={{ headerShown: false }}
+          name="Main"
+          component={AppTabNavigator}
+        />
+        <StackNavigator.Screen
+          options={{ title: "Product Details" }}
+          name="Product"
+          component={ProductDetailScreen}
+        />
+        <StackNavigator.Screen
+          options={{ animation: "slide_from_bottom" }}
+          name="Checkout"
+          component={CheckoutScreen}
+        />
+        <StackNavigator.Screen
+          name="PurchaseConfirmation"
+          component={PurchaseConfirmationScreen}
+        />
       </StackNavigator.Navigator>
     </AppProviders>
   );

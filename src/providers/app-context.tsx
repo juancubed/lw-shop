@@ -115,29 +115,27 @@ const MainProvider = ({ children }: any) => {
         });
         return;
       }
-      let _products = JSON.parse(JSON.stringify(cart.products));
+      let _products = cart.products;
       _products.push({
         product,
-        variant,
+        variant: { ...variant },
         price: variant
           ? getPriceFromVariations(product, variant)
           : product.price,
         quantity,
       });
-      setCart((prevState) => ({
-        ...prevState,
-        products: _products,
-        updated: new Date(),
-      }));
-      let _cart = JSON.stringify(cart);
-      AsyncStorageLib.setItem("cart", _cart);
+      let _cart = { ...cart, products: _products, updated: new Date() };
+      setCart(_cart);
+      AsyncStorageLib.setItem("cart", JSON.stringify(_cart));
       resolve({
         message: "The product has been added successfully",
         success: true,
       });
     });
   };
-  const clearCart = () => {};
+  const clearCart = () => {
+    setCart({ products: [], created: new Date(), updated: new Date() });
+  };
 
   return (
     <appContext.Provider
