@@ -43,25 +43,26 @@ List the key features and functionalities of your app.
 - 
 ## Getting Started
 
-Provide instructions for users to get your project up and running.
+To run this project you need to download Expo installed your laptop, follow https://docs.expo.dev/get-started/installation/
+- You also need a device (simulator or real device) Web version is not responsive enough and doesn't work as seamlessly.
+- Clone this repository, cd into it and install all dependencies npm i
 
 ### Prerequisites
 
-List any prerequisites or dependencies required to run the project.
+Expo,
+If you are going to use a Real device, you need to download the App Expo Go from any of the Stores
 
 ### Installation
 
-A step-by-step guide on how to install and set up the project on a local machine.
-
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/your-project.git
+git clone https://github.com/juancubed/lw-shop/
 
 # Navigate to the project directory
-cd your-project/
+cd lw-shop/
 
 # Install dependencies
 npm install
 
 # Start the development server
-expo start
+npm start
