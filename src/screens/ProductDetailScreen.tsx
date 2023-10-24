@@ -27,44 +27,32 @@ import { fetchProductDetail } from "../api";
 import { useAppContext } from "../providers/app-context";
 import { Alert, View } from "react-native";
 import { SkeletonProductDetail } from "../components/SkeletonProductDetail";
-import { VariationsList } from "../components/VariantionsList";
-import { getPriceFromVariations, isValidChosenVariant } from "../utils/utils";
+import { ProductVariationsSelection } from "../components/VariantionsList";
+import {
+  getPriceFromVariations,
+  getVariationGroup,
+  isValidChosenVariant,
+  variationGroup,
+} from "../utils/utils";
 
 export const ProductDetailScreen: React.FC = ({ navigation, ...rest }: any) => {
   const route = useRoute<any>();
   const { updateCart, products } = useAppContext();
-  const { productId, variant } = route.params;
+  const { productId } = route.params;
   const [product, setProduct] = useState<IProduct>();
-  const [chosenVariant, setChosenVariant] = useState<IVariation>();
+
   const [chosenVariationObject, setChosenVariationObject] =
-    useState<IChosenVariationObj>();
+    useState<IChosenVariationObj>({});
   const [price, setPrice] = useState<number>(product?.price ?? 0);
-  const [variationTypes, setVariationTypes] = useState<{
-    [key: string]: IVariation[];
-  }>();
+  const [variationTypes, setVariationTypes] = useState<variationGroup>();
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const showAlert = () =>
-    Alert.alert(
-      "Alert Title",
-      "My Alert Msg",
-      [
-        {
-          text: "Cancel",
-          onPress: () => Alert.alert("Cancel Pressed"),
-          style: "cancel",
-        },
-      ],
-      {
-        cancelable: true,
-        onDismiss: () =>
-          Alert.alert(
-            "This alert was dismissed by tapping outside of the alert dialog."
-          ),
-      }
-    );
+
   const handleAddToCart = () => {
-    if (!product || !chosenVariant || isSubmitting) return;
+    if (!product || !chosenVariationObject || isSubmitting) return;
+    // Object.keys(variationTypes)
+    Object.keys(chosenVariationObject);
+
     if (!isValidChosenVariant(product, chosenVariationObject)) {
       Alert.alert(
         "Incomplete information",
@@ -82,7 +70,7 @@ export const ProductDetailScreen: React.FC = ({ navigation, ...rest }: any) => {
         }
       });
       setIsSubmitting(false);
-    }, 1000);
+    }, 200);
   };
 
   useEffect(() => {
@@ -90,21 +78,10 @@ export const ProductDetailScreen: React.FC = ({ navigation, ...rest }: any) => {
       setTimeout(() => {
         let prod = products?.find((p) => p.id === productId);
         setProduct(prod);
-        let variationGroups: {
-          [key: string]: IVariation[];
-        } = {};
 
         if (prod) {
-          if (prod.variants && prod.variants.length > 0) {
-            // setChosenVariant(prod.variants[0]);
-            prod.variants.forEach((v) => {
-              if (v.group in variationGroups === false) {
-                variationGroups[v.group] = [];
-              }
-              variationGroups[v.group].push(v);
-            });
-            setVariationTypes(variationGroups);
-          }
+          let variationGroup = getVariationGroup(prod?.category.name);
+          setVariationTypes(variationGroup);
           setPrice(prod.price);
         }
         setIsLoaded(true);
@@ -179,56 +156,25 @@ export const ProductDetailScreen: React.FC = ({ navigation, ...rest }: any) => {
 
       <Box>
         {/* Main Variation */}
-        {product?.variants && variationTypes && (
+
+        {product?.variants && product.variants.length > 0 && variationTypes && (
           <Flex>
-            {Object.keys(variationTypes).map((k) => {
-              return (
-                <Box key={k}>
-                  <Text>{k}</Text>
-                  <Select
-                    h={"10"}
-                    onValueChange={(value) => {
-                      let v = variationTypes[k].find((t) => t.id === value);
-                      setChosenVariant(
-                        variationTypes[k].find((t) => t.id === value)
-                      );
-                      let c: IChosenVariationObj = {};
-                      if (v) {
-                        c[v.group] = v.value;
-                        setChosenVariationObject(c);
-                        let p = getPriceFromVariations(product, c);
-                        if (p >= 0) setPrice(p);
-                      }
-                    }}
-                  >
-                    {variationTypes[k].map((v, i) => {
-                      return (
-                        <Select.Item
-                          label={`${v.value}`}
-                          value={v.id}
-                          key={i}
-                        />
-                      );
-                    })}
-                  </Select>
-                  {/* Sub Variations */}
-                  {chosenVariant && chosenVariant.variation.length > 0 && (
-                    <VariationsList
-                      onSelect={(chosenObj: IVariationObj | undefined) => {
-                        if (chosenObj && chosenVariationObject) {
-                          let c = chosenVariationObject;
-                          c[chosenObj.group] = chosenObj.value;
-                          setChosenVariationObject(c);
-                          let p = getPriceFromVariations(product, c);
-                          if (p >= 0) setPrice(p);
-                        }
-                      }}
-                      variant={chosenVariant}
-                    />
-                  )}
-                </Box>
-              );
-            })}
+            {product.variants != undefined && (
+              <ProductVariationsSelection
+                variants={product.variants}
+                onSelect={(chosenObj: IVariationObj | undefined) => {
+                  if (chosenObj && chosenVariationObject) {
+                    let c = chosenVariationObject;
+                    c[chosenObj.group] = chosenObj.value;
+                    setChosenVariationObject(c);
+                    let p = getPriceFromVariations(product, c);
+                    if (p >= 0) setPrice(p);
+                    // alert(isValidChosenVariant(product, chosenVariationObject));
+                  }
+                }}
+                chosenVariationObject={chosenVariationObject}
+              />
+            )}
           </Flex>
         )}
       </Box>
@@ -242,7 +188,7 @@ export const ProductDetailScreen: React.FC = ({ navigation, ...rest }: any) => {
       <Button
         colorScheme={"lightBlue"}
         _text={{ fontSize: "lg" }}
-        isDisabled={!product || !chosenVariant || isSubmitting}
+        isDisabled={!product || !chosenVariationObject || isSubmitting}
         isLoading={isSubmitting}
         isLoadingText="Adding to Cart"
         m="4"

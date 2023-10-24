@@ -103,14 +103,17 @@ const MainProvider = ({ children }: any) => {
     quantity: number
   ) => {
     return new Promise<TCartOperation>((resolve, reject) => {
-      const existingElement = cart.products.find((p) => {
-        p.product.id === product.id && isVariationIncluded(p.variant, variant);
-      });
+      const existingElement = cart.products
+        .filter((p) => p.product.id === product.id)
+        .find((p) => {
+          return isVariationIncluded(p.variant, variant);
+        });
       if (existingElement) {
         resolve({
           message: "The product has already been added",
           success: false,
         });
+        return;
       }
       let _products = JSON.parse(JSON.stringify(cart.products));
       _products.push({

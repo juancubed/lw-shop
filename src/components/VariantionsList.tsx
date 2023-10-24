@@ -1,9 +1,14 @@
 import { Box, Flex, Select, Text } from "native-base";
-import { IVariation, IVariationObj } from "../types";
+import { IChosenVariationObj, IVariation, IVariationObj } from "../types";
 import React, { useEffect, useState } from "react";
 import { BasicCard } from "./BasicCard";
 import { useNavigation } from "@react-navigation/native";
 
+type VariantsProps = {
+  variants: IVariation[];
+  chosenVariationObject?: IChosenVariationObj;
+  onSelect: (chosenObj: IVariationObj | undefined) => void;
+};
 type VariantListItemProps = {
   variant: IVariation;
   chosenVariationObject?: IVariationObj;
@@ -13,13 +18,15 @@ type VariantListItemProps = {
 interface Props {
   variation: IVariationObj;
   onSelect: (chosenObj: IVariationObj | undefined) => void;
-  chosenVariationObject?: IVariationObj;
+  chosenVariationObject?: IChosenVariationObj;
 }
 
 const VariationGroupElement: React.FC<Props> = (props) => {
   const { variation, chosenVariationObject, onSelect } = props;
-  if (variation.subGroup === undefined) return undefined;
-  useEffect(() => {}, [chosenVariationObject]);
+  const [subVariation, setSubVariation] = useState<IVariationObj>();
+  if (variation.subGroup === undefined || variation.subGroup.length == 0)
+    return undefined;
+  // useEffect(() => {}, [chosenVariationObject]);
   return (
     <Box>
       <Text style={{ textTransform: "capitalize" }}>
@@ -30,6 +37,7 @@ const VariationGroupElement: React.FC<Props> = (props) => {
         onValueChange={(value) => {
           if (value && variation.subGroup) {
             let v = variation.subGroup.find((v) => v.value === value);
+            setSubVariation(v);
             if (v) onSelect(v);
           }
         }}
@@ -38,44 +46,65 @@ const VariationGroupElement: React.FC<Props> = (props) => {
           return <Select.Item key={i} label={v.value} value={v.value} />;
         })}
       </Select>
-
-      {/* {<Box>
-
-</Box>} */}
+      {subVariation && subVariation.subGroup && (
+        <VariationGroupElement
+          onSelect={onSelect}
+          chosenVariationObject={chosenVariationObject}
+          variation={{
+            group: subVariation.group,
+            value: subVariation.value,
+            price: subVariation.price,
+            subGroup: subVariation.subGroup,
+          }}
+        />
+      )}
     </Box>
   );
 };
 
-export const VariationsList: React.FC<VariantListItemProps> = (props) => {
-  const { variant, chosenVariationObject, onSelect } = props;
-  const [subGroup, setSubGroup] = useState<IVariationObj>();
+export const ProductVariationsSelection: React.FC<VariantsProps> = (props) => {
+  const { variants, chosenVariationObject, onSelect } = props;
+  const [chosenVariant, setChosenVariant] = useState<IVariation>();
 
   return (
     <Flex>
-      {variant.variation.length > 0 && (
+      {variants.length > 0 && (
         <Text style={{ textTransform: "capitalize", fontWeight: "bold" }}>
-          {variant.variation[0].group}
+          {variants[0].group}
         </Text>
       )}
       <Select
-        height={"10"}
+        h={"10"}
         onValueChange={(value) => {
-          if (value) {
-            let v = variant.variation.find((v) => v.value === value);
-            if (v) onSelect(v);
+          let v = variants.find((t) => t.value === value);
+          if (v) {
+            setChosenVariant(v);
+            let c: IChosenVariationObj = {};
+            if (v) {
+              c[v.group] = v.value;
+
+              onSelect(v);
+            }
           }
         }}
       >
-        {variant.variation.map((v, i) => {
-          return <Select.Item key={i} label={v.value} value={v.value} />;
+        {variants.map((v, i) => {
+          return <Select.Item label={`${v.value}`} value={v.value} key={i} />;
         })}
       </Select>
-      {/* {chosenVariationObject && (
+
+      {chosenVariant?.variation && (
         <VariationGroupElement
           onSelect={onSelect}
-          variation={variant.variation.find}
+          chosenVariationObject={chosenVariationObject}
+          variation={{
+            group: chosenVariant.group,
+            value: chosenVariant.value,
+            price: chosenVariant.price,
+            subGroup: chosenVariant.variation,
+          }}
         />
-      )} */}
+      )}
     </Flex>
   );
 };

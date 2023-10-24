@@ -17,6 +17,7 @@ export const VARIATION_PROCESSOR = [
   "Intel i9",
 ];
 export const VARIATION_CAPACITY = ["64 GB", "128 GB", "256 GB"];
+export const VARIATION_SHOES_SIZE = ["6 UK", "7 UK", "8 UK", "9 UK"];
 
 export const VARIATION_GROUPS: variationGroups = {
   smartphones: { color: VARIATION_COLORS, capacity: VARIATION_CAPACITY },
@@ -26,22 +27,29 @@ export const VARIATION_GROUPS: variationGroups = {
     processor: VARIATION_PROCESSOR,
   },
   Clothes: { color: VARIATION_COLORS, size: VARIATION_SIZES },
+  Shoes: { size: VARIATION_SHOES_SIZE, color: VARIATION_COLORS },
   Furniture: { color: VARIATION_COLORS },
 };
 export type variationGroup = { [key: string]: string[] };
 export type variationGroups = { [key: string]: { [key: string]: string[] } };
+
+export const getVariationGroup = (categoryName: string) => {
+  let variationTypes: variationGroup = { color: VARIATION_COLORS };
+  Object.keys(VARIATION_GROUPS).forEach((group) => {
+    if (group === categoryName) {
+      variationTypes = VARIATION_GROUPS[group];
+    }
+  });
+  return variationTypes;
+};
+
 export const generateVariations = (
   product: IProduct,
   numberOfVariations: number
 ) => {
   let variations: IVariationObj[] = [];
 
-  let variationTypes: variationGroup = { color: VARIATION_COLORS };
-  Object.keys(VARIATION_GROUPS).forEach((group) => {
-    if (group === product.category.name) {
-      variationTypes = VARIATION_GROUPS[group];
-    }
-  });
+  let variationTypes: variationGroup = getVariationGroup(product.category.name);
 
   Object.keys(variationTypes).forEach((key, keyIndex) => {
     let variants = variationTypes[key].map((val) => {
@@ -80,10 +88,10 @@ export const getPriceFromVariations = (
   if (!variants) return product.price;
   let price = product.price;
   const recursivePriceLookup = (
-    variant: IVariationObj | undefined,
+    variant: IVariationObj | IVariationObj | undefined,
     variationsLeft: IChosenVariationObj,
     price: number
-  ) => {
+  ): number => {
     if (Object.keys(variationsLeft).length === 0 || variant === undefined) {
       return price;
     }
@@ -92,25 +100,34 @@ export const getPriceFromVariations = (
       variant.value === variationsLeft[variant.group]
     ) {
       delete variationsLeft[variant.group];
-      if (Object.keys(variationsLeft).length === 0)
+      if (Object.keys(variationsLeft).length === 0) {
         return variant.price ?? price;
+      }
+
       if (variant.subGroup) {
-        variant.subGroup.forEach((v) => {
-          return recursivePriceLookup(
-            v,
+        for (let i = 0; i < variant.subGroup.length; i++) {
+          const v_price = recursivePriceLookup(
+            variant.subGroup[i],
             { ...variationsLeft },
             variant.price ?? price
           );
-        });
+          if (v_price >= 0) {
+            return v_price;
+          }
+        }
       }
-    } else {
-      return null;
     }
+    return -1;
   };
 
   variants.forEach((v) => {
-    let v_price = recursivePriceLookup(v, { ...chosenVariations }, price);
-    if (v_price) {
+    const { group, value, image, price: priceValue, variation } = v;
+    let v_price = recursivePriceLookup(
+      { group, value, price: priceValue, subGroup: variation },
+      { ...chosenVariations },
+      price
+    );
+    if (v_price >= 0) {
       price = v_price;
       return;
     }
@@ -125,7 +142,7 @@ export const isValidChosenVariant = (
   if (!variants) return true;
   if (variants && !chosenVariations) return false;
 
-  const recursivePriceLookup = (
+  const recursiveValidation = (
     variant: IVariationObj | undefined,
     variationsLeft: IChosenVariationObj
   ): boolean => {
@@ -144,28 +161,33 @@ export const isValidChosenVariant = (
           return false;
         }
       }
+
       if (variant.subGroup) {
-        // variant.subGroup.forEach((v) => {
-        //   return recursivePriceLookup(v, { ...variationsLeft });
-        // });
-        let _sbVariant = variant.subGroup.find((sb) => {
-          return recursivePriceLookup(sb, { ...chosenVariations }) === true;
-        });
-        return _sbVariant != undefined;
+        for (let i = 0; i < variant.subGroup.length; i++) {
+          const _sbVariant = recursiveValidation(variant.subGroup[i], {
+            ...variationsLeft,
+          });
+          if (_sbVariant) {
+            return _sbVariant;
+          }
+        }
       }
     }
     return false;
   };
 
-  let variant = variants.find((v) => {
-    return (
-      recursivePriceLookup(
-        { value: v.value, group: v.group, subGroup: v.variation },
-        { ...chosenVariations }
-      ) === true
+  for (let i = 0; i < variants.length; i++) {
+    const { group, value, image, price: priceValue, variation } = variants[i];
+
+    const _sbVariant = recursiveValidation(
+      { group, value, price: priceValue, subGroup: variation },
+      { ...chosenVariations }
     );
-  });
-  return variant != undefined;
+    if (_sbVariant) {
+      return true;
+    }
+  }
+  return false;
 };
 
 export const isVariationIncluded = (
