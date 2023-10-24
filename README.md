@@ -8,6 +8,17 @@ Mock of a Mobile App of a Store that shows any type of products and allows the u
 The list of products is obtained by making a request to a public Store API (https://api.escuelajs.co/api/v1/) 
 The products are modified upon response to comply with the requirement of the variations. 
 
+## Table of Contents
+
+- [Description](#description)
+- [Screenshots](#screenshots)
+- [Features](#features)
+- [Technologies](#technologies)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+- [Usage](#usage)
+-  
 ## Screenshots
 
 Include some screenshots or gifs of your app to give users a visual representation of the project.
