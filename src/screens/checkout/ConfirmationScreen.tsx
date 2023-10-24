@@ -41,7 +41,6 @@ export const ConfirmationScreen: React.FC = ({ navigation, ...rest }: any) => {
         justifyContent: "center",
       }}
     >
-      {" "}
       <ScrollView>
         <Heading p="4" pb="3" size="lg">
           Purchase Confirmation
